@@ -215,7 +215,7 @@ for generation in range(num_generations):
 
 print("Best Fitness:", best_fitness)
 print("Best Syndrome Circuit:")
-with open('best_syndrome_circuit.txt', 'w',encoding='utf-8') as f:
+with open('best_syndrome_circuit_as.txt', 'w',encoding='utf-8') as f:
     f.write(str(best_syndrome_circuit.draw(output='text')))
 
 
