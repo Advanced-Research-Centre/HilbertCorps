@@ -219,11 +219,13 @@ for gi in range(no_gen):
         pop[agt_id] = qecc_agent(agt_id, 1, 3)
         agt_id += 1
         # print(pop[i].qec_ansatz.draw())
-    # Evaluate and Select
-    pop_nxt_gen = {}
+    # Evaluate
     for ai in pop.keys():  
         pop[ai].eval_agent()
-        if pop[ai].fitness < max_fit:   # TBD: Change to Elitist Selection for pop_sz/2 agents
+    # Select                    # TBD: Change to Elitist Selection for pop_sz/2 agents
+    pop_nxt_gen = {}
+    for ai in pop.keys(): 
+        if pop[ai].fitness < max_fit:   
             pop_nxt_gen[ai] = pop[ai]
     # Mutate
     for ai in pop_nxt_gen.keys(): 
