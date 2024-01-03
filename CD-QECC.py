@@ -86,6 +86,8 @@ class qecc_agent:
     Generate the QEC circuit    
     """
     def gen_qec_circ(self, ansatz_params):
+
+        ''' Option 1: Hardcode Bit flip QECC '''
         qc = QuantumCircuit(self.n + self.s, self.k)
         qc.cx(0, 3)
         qc.cx(1, 3)
@@ -101,14 +103,18 @@ class qecc_agent:
         qc.x(3)
         qc.barrier()
 
-        # TBD: Choose a random qubit between q1:(0,n), and a random target between q2:(0,s) and apply a CNOT from q1 to n+q2. Repeat this for 4 times
+        ''' Option 2: Use Random Unitary '''
+
+        ''' Option 3: Use Gates in {x,cx,ccx} on Random Data/Syndrome Qubits '''
+
+        ''' Option 4: Use Agent's Variational Ansatz '''
         qc_params = self.qec_ansatz.parameters
         qec_circ = self.qec_ansatz
         for i in range(len(qc_params)):
             qec_circ = qec_circ.assign_parameters({qc_params[i]: ansatz_params[i]})
         # print(qec_circ.draw())
-        
-        qc = qc.compose(qec_circ)
+        qc = qc.compose(qec_circ)        
+
         return qc
     
     """
