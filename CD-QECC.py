@@ -26,6 +26,8 @@ class qecc_agent:
         self.qec_ansatz = QuantumCircuit(self.n + self.s, self.k)
         self.ansatz_init()
 
+        self.fitness = 0
+
     """
     Generate the input circuit
     """
@@ -79,7 +81,7 @@ class qecc_agent:
     """
     Mutate agent's ansatz
     """
-    def ansatz_mutate(self):
+    def ansatz_mutate(self, mut_prob):
         return 
 
     """
@@ -170,12 +172,12 @@ class qecc_agent:
     Optimize the agent's ansatz parameters
     """
     def eval_agent(self):
-        score = 0
-        no_params = len(self.qec_ansatz.parameters)
-        best_score = 1000
-        best_params = []
 
-        ''' Using Random Search '''
+        ''' Option 1: Using Random Search '''
+        # no_params = len(self.qec_ansatz.parameters)
+        # best_score = 1000
+        # score = 0
+        # best_params = []
         # for vi in range(self.vqc_trials):
         #     params = []
         #     for i in range(no_params):
@@ -186,28 +188,47 @@ class qecc_agent:
         #         best_score = score
         #         best_params = params
         # print("\tAgent ID",self.agent_id,"Best score:", best_score, "Best params:", best_params)
+        # self.fitness = best_score
 
-        ''' Using SciPy optimizer '''
+        ''' Option 2: Using SciPy Optimizer '''
+        no_params = len(self.qec_ansatz.parameters)
         init_params = np.random.uniform(0, 2*np.pi, no_params)
         max_iter = self.vqc_trials
         res = minimize(self.run_param, init_params, method='nelder-mead', options={'xatol': 1e-8, 'disp': False, 'maxiter': max_iter})
-        print("\tAgent ID",self.agent_id,"Best score:", res.fun, "Best params:", res.x)
-        
-        return best_score
+        print("\tAgent ID", self.agent_id, "Best score:", res.fun, "Best params:", res.x)
+        self.fitness = res.fun
+
+        return
 
 
 """
 Genetic Algorithm that uses a population of qecc_agents for evolving the best ansatz
 """
 
-pop_sz = 1
-no_gen = 1
-mut_prob = 0.1
-pop = {}
+no_gen = 3      # Number of generations
+pop_sz = 2      # Population size
+pop = {}        # Population of agents as objects of the class qecc_agent
+agt_id = 0      # Agent ID
+max_fit = 0.018 # Maximum fitness (penalty) score for an agent to be selected for next generation
+mut_prob = 0.1  # Probability of mutation of an agent's ansatz
 
 for gi in range(no_gen):
     print("Generation", gi)
-    for ai in range(pop_sz):
-        pop[ai] = qecc_agent(ai, 1, 3)
+    # Create new individuals in population
+    for _ in range(len(pop),pop_sz):
+        pop[agt_id] = qecc_agent(agt_id, 1, 3)
+        agt_id += 1
         # print(pop[i].qec_ansatz.draw())
-        score = pop[ai].eval_agent()
+    # Evaluate and Select
+    pop_nxt_gen = {}
+    for ai in pop.keys():  
+        pop[ai].eval_agent()
+        if pop[ai].fitness < max_fit:   # TBD: Change to Elitist Selection for pop_sz/2 agents
+            pop_nxt_gen[ai] = pop[ai]
+    # Mutate
+    for ai in pop_nxt_gen.keys(): 
+        pop_nxt_gen[ai].ansatz_mutate(mut_prob)
+    # Update population
+    pop = pop_nxt_gen
+
+# Print best individual over all generations
