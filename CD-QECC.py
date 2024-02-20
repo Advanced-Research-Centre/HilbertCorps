@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[17]:
-
-
 from qiskit import QuantumCircuit, execute, Aer
 from qiskit.circuit import Parameter
 import numpy as np
 from scipy.optimize import minimize 
 import random
+import copy
 from qiskit.visualization import plot_histogram
-
 
 QC_SIM = Aer.get_backend('qasm_simulator')
 
@@ -69,11 +66,12 @@ class qecc_agent:
             params.append(Parameter(f'p{i}'))
             self.qec_ansatz.rx(params[i], i)
 
-        
-        num_cnot_gates = random.randint(0, self.k)  
+        num_cnot_gates = random.randint(0, 10)  
         for _ in range(num_cnot_gates):
             control_qubit = random.randint(0, self.n + self.s - 1)
-            target_qubit = random.randint(0, self.n + self.s - 1)
+            valid_target_qubits = list(range(self.n + self.s))
+            valid_target_qubits.remove(control_qubit)
+            target_qubit = random.choice(valid_target_qubits)
             self.qec_ansatz.cx(control_qubit, target_qubit)
         return
 
@@ -144,10 +142,10 @@ class qecc_agent:
         return
 
 no_gen = 3      # Number of generations
-pop_sz = 2      # Population size
+pop_sz = 100    # Population size
 pop = {}        # Population of agents as objects of the class qecc_agent
 agt_id = 0      # Agent ID
-max_fit = 0.018 # Maximum fitness (penalty) score for an agent to be selected for next generation
+max_fit = 0.02  # Maximum fitness (penalty) score for an agent to be selected for next generation
 mut_prob = 0.1  # Probability of mutation of an agent's ansatz
 
 for gi in range(no_gen):
@@ -163,7 +161,9 @@ for gi in range(no_gen):
     # Select                    # TBD: Change to Elitist Selection for pop_sz/2 agents
     pop_nxt_gen = {}
     for ai in pop.keys(): 
-        if pop[ai].fitness < max_fit:   
+        if pop[ai].fitness < max_fit:  
+            print("Fit ansatz found for Agent",ai)
+            print(pop[ai].qec_ansatz)
             pop_nxt_gen[ai] = pop[ai]
     # Mutate
     for ai in pop_nxt_gen.keys(): 
@@ -173,10 +173,3 @@ for gi in range(no_gen):
    
 # Print best individual over all generations
    
-
-
-# In[ ]:
-
-
-
-
